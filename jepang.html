@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nihongo Master - Latihan Bahasa Jepang</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts (Noto Sans JP & Inter) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        jp: ['"Noto Sans JP"', 'sans-serif']
+                    },
+                    colors: {
+                        sakura: {
+                            50: '#fff5f7',
+                            100: '#ffe3ec',
+                            200: '#fccada',
+                            500: '#f472b6',
+                            600: '#e11d48',
+                            700: '#be123c',
+                        },
+                        matcha: {
+                            50: '#f4f9f4',
+                            100: '#e3f2e3',
+                            500: '#52b788',
+                            700: '#2d6a4f',
+                        },
+                        sumi: '#2b2d42',
+                        washi: '#fdfbf7'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #f8f6f0;
+            background-image: radial-gradient(#e5e0d8 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        /* Perspective for 3D card flip */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+
+        .card-inner {
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+
+        .card-flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+        }
+
+        @keyframes subtle-bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        .card-hover-effect:hover {
+            animation: subtle-bounce 1.5s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="font-sans text-sumi min-h-screen flex flex-col justify-between antialiased">
+
+    <!-- Header Navigation -->
+    <header class="bg-washi/90 backdrop-blur-md border-b border-stone-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-sakura-100 text-sakura-600 flex items-center justify-center font-bold text-xl font-jp shadow-inner">
+                    日
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight text-stone-800">日本語 Master</h1>
+                    <p class="text-xs text-stone-500">Latihan Kosakata & Kanji Interaktif</p>
+                </div>
+            </div>
+
+            <!-- Global Score Stats -->
+            <div class="flex items-center gap-4 text-xs md:text-sm">
+                <div class="bg-white px-3 py-1.5 rounded-full border border-stone-200 shadow-sm flex items-center gap-2">
+                    <i class="fa-solid font-bold text-amber-500 fa-crown"></i>
+                    <span class="text-stone-500 hidden sm:inline">Round:</span>
+                    <span id="stat-round" class="font-bold text-stone-800">1</span>
+                </div>
+                <div class="bg-white px-3 py-1.5 rounded-full border border-stone-200 shadow-sm flex items-center gap-2">
+                    <i class="fa-solid fa-circle-check text-matcha-500"></i>
+                    <span class="text-stone-500 hidden sm:inline">Benar:</span>
+                    <span id="stat-score" class="font-bold text-stone-800">0</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-6xl mx-auto px-4 py-6 flex-1 w-full flex flex-col justify-center items-center">
+
+        <!-- Category Selector Header & Control -->
+        <section class="w-full mb-8">
+            <div class="bg-white rounded-2xl p-4 md:p-5 border border-stone-200/80 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
+                
+                <div class="w-full md:w-auto flex items-center gap-2">
+                    <i class="fa-solid fa-layer-group text-sakura-600 text-lg"></i>
+                    <label for="level-select" class="text-sm font-semibold text-stone-700 whitespace-nowrap">Level / Kategori:</label>
+                    <select id="level-select" class="w-full md:w-auto bg-stone-50 border border-stone-300 text-stone-800 text-sm rounded-xl focus:ring-sakura-500 focus:border-sakura-500 p-2.5 font-medium transition cursor-pointer">
+                        <option value="hiragana">Hiragana Lengkap (Tanpa Romaji)</option>
+                        <option value="katakana">Katakana Lengkap (Tanpa Romaji)</option>
+                        <option value="n5">Kanji N5 (Dengan Romaji)</option>
+                        <option value="n4">Kanji N4 (Romaji Acak)</option>
+                        <option value="n3">Kanji N3 (Tanpa Romaji)</option>
+                    </select>
+                </div>
+
+                <div class="text-xs text-stone-500 flex items-center gap-2">
+                    <span id="level-description" class="bg-stone-100 text-stone-600 px-3 py-1.5 rounded-lg border border-stone-200">
+                        Karakter Hiragana dasar & kosakata pemula.
+                    </span>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Round Indicator -->
+        <div class="text-center mb-6">
+            <span class="text-xs font-semibold uppercase tracking-wider text-stone-400">Pilih & Jawab Langsung Pada Kartu</span>
+            <h2 class="text-xl md:text-2xl font-bold text-stone-800 mt-1 flex items-center justify-center gap-2">
+                <span>Round <span id="current-round-display">1</span></span>
+                <span id="round-status-badge" class="text-xs font-normal bg-amber-100 text-amber-800 px-2.5 py-0.5 rounded-full border border-amber-200">3 Kartu Tersedia</span>
+            </h2>
+        </div>
+
+        <!-- 3 Cards Container (Inline Quiz - NO POPUP) -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full mb-8" id="cards-container">
+            <!-- Rendered by JS -->
+        </section>
+
+        <!-- Next Round Controller -->
+        <div id="next-round-container" class="opacity-0 pointer-events-none transition-all duration-500 transform translate-y-4 flex flex-col items-center">
+            <button onclick="nextRound()" class="bg-gradient-to-r from-sakura-600 to-sakura-500 hover:from-sakura-700 hover:to-sakura-600 text-white font-bold py-3.5 px-8 rounded-full shadow-lg shadow-sakura-500/20 hover:shadow-sakura-500/40 hover:-translate-y-0.5 transition-all flex items-center gap-3 group text-base">
+                <span>Lanjut ke Round Berikutnya</span>
+                <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+            </button>
+            <p class="text-xs text-stone-400 mt-2">Soal acak baru akan disiapkan secara otomatis</p>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-washi border-t border-stone-200/80 py-4 text-center text-xs text-stone-400">
+        <div class="max-w-6xl mx-auto px-4">
+            <p>© Nihongo Master - Belajar Bahasa Jepang Interaktif & Endless Learning</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Data & Engine Logic -->
+    <script>
+        /* --- Kumpulan Data Soal per Level --- */
+        const QUESTION_DATABASE = {
+            hiragana: [
+                { jp: 'あ', romaji: 'a', meaning: 'Suara Vokal "A"' },
+                { jp: 'い', romaji: 'i', meaning: 'Suara Vokal "I"' },
+                { jp: 'う', romaji: 'u', meaning: 'Suara Vokal "U"' },
+                { jp: 'え', romaji: 'e', meaning: 'Suara Vokal "E"' },
+                { jp: 'お', romaji: 'o', meaning: 'Suara Vokal "O"' },
+                { jp: 'ねこ', romaji: 'neko', meaning: 'Kucing' },
+                { jp: 'いぬ', romaji: 'inu', meaning: 'Anjing' },
+                { jp: 'さくら', romaji: 'sakura', meaning: 'Bunga Sakura' },
+                { jp: 'みず', romaji: 'mizu', meaning: 'Air' },
+                { jp: 'やま', romaji: 'yama', meaning: 'Gunung' },
+                { jp: 'かわ', romaji: 'kawa', meaning: 'Sungai' },
+                { jp: 'たべもの', romaji: 'tabemono', meaning: 'Makanan' },
+                { jp: 'のみもの', romaji: 'nomimono', meaning: 'Minuman' },
+                { jp: 'ありがとう', romaji: 'arigatou', meaning: 'Terima kasih' },
+                { jp: 'おはよう', romaji: 'ohayou', meaning: 'Selamat pagi' }
+            ],
+            katakana: [
+                { jp: 'ア', romaji: 'a', meaning: 'Suara Katakana "A"' },
+                { jp: 'イ', romaji: 'i', meaning: 'Suara Katakana "I"' },
+                { jp: 'ウ', romaji: 'u', meaning: 'Suara Katakana "U"' },
+                { jp: 'エ', romaji: 'e', meaning: 'Suara Katakana "E"' },
+                { jp: 'オ', romaji: 'o', meaning: 'Suara Katakana "O"' },
+                { jp: 'カメラ', romaji: 'kamera', meaning: 'Kamera' },
+                { jp: 'テレビ', romaji: 'terebi', meaning: 'Televisi' },
+                { jp: 'コーヒー', romaji: 'koohii', meaning: 'Kopi' },
+                { jp: 'パン', romaji: 'pan', meaning: 'Roti' },
+                { jp: 'ホテル', romaji: 'hoteru', meaning: 'Hotel' },
+                { jp: 'バス', romaji: 'basu', meaning: 'Bis' },
+                { jp: 'タクシー', romaji: 'takushii', meaning: 'Taksi' },
+                { jp: 'アニメ', romaji: 'anime', meaning: 'Anime' },
+                { jp: 'ラーメン', romaji: 'raamen', meaning: 'Ramen' }
+            ],
+            n5: [
+                { jp: '日', furi: 'ひ / にち', romaji: 'hi / nichi', meaning: 'Matahari / Hari' },
+                { jp: '月', furi: 'つき / げつ', romaji: 'tsuki / getsu', meaning: 'Bulan' },
+                { jp: '木', furi: 'き / もく', romaji: 'ki / moku', meaning: 'Pohon / Kayu' },
+                { jp: '水', furi: 'みず / すい', romaji: 'mizu / sui', meaning: 'Air' },
+                { jp: '火', furi: 'ひ / か', romaji: 'hi / ka', meaning: 'Api' },
+                { jp: '人', furi: 'ひと / じん', romaji: 'hito / jin', meaning: 'Orang' },
+                { jp: '山', furi: 'やま / さん', romaji: 'yama / san', meaning: 'Gunung' },
+                { jp: '川', furi: 'かわ / せん', romaji: 'kawa / sen', meaning: 'Sungai' },
+                { jp: '本', furi: 'ほん', romaji: 'hon', meaning: 'Buku / Utama' },
+                { jp: '学', furi: 'まな・ぶ / がく', romaji: 'manabu / gaku', meaning: 'Belajar / Ilmu' },
+                { jp: '校', furi: 'こう', romaji: 'kou', meaning: 'Sekolah' },
+                { jp: '友', furi: 'とも', romaji: 'tomo', meaning: 'Teman' },
+                { jp: '食', furi: 'た・べる / しょく', romaji: 'taberu / shoku', meaning: 'Makan' },
+                { jp: '飲', furi: 'の・む / いん', romaji: 'nomu / in', meaning: 'Minum' },
+                { jp: '行', furi: 'い・く / こう', romaji: 'iku / kou', meaning: 'Pergi' }
+            ],
+            n4: [
+                { jp: '犬', furi: 'いぬ', romaji: 'inu', meaning: 'Anjing' },
+                { jp: '青', furi: 'あお', romaji: 'ao', meaning: 'Biru' },
+                { jp: '赤', furi: 'あか', romaji: 'aka', meaning: 'Merah' },
+                { jp: '走', furi: 'はし・る', romaji: 'hashiru', meaning: 'Berlari' },
+                { jp: '歩', furi: 'ある・く', romaji: 'aruku', meaning: 'Berjalan' },
+                { jp: '建', furi: 'た・てる', romaji: 'tateru', meaning: 'Membangun' },
+                { jp: '旅', furi: 'たび / りょ', romaji: 'tabi / ryo', meaning: 'Perjalanan / Travel' },
+                { jp: '服', furi: 'ふく', romaji: 'fuku', meaning: 'Pakaian' },
+                { jp: '室', furi: 'しつ', romaji: 'shitsu', meaning: 'Ruangan' },
+                { jp: '親', furi: 'おや / しん', romaji: 'oya / shin', meaning: 'Orang tua / Akrab' },
+                { jp: '切', furi: 'き・る / せつ', romaji: 'kiru / setsu', meaning: 'Memotong / Penting' },
+                { jp: '貸', furi: 'か・す', romaji: 'kasu', meaning: 'Meminjamkan' }
+            ],
+            n3: [
+                { jp: '経済', furi: 'けいざい', romaji: '', meaning: 'Ekonomi' },
+                { jp: '複雑', furi: 'ふくざつ', romaji: '', meaning: 'Rumit / Kompleks' },
+                { jp: '準備', furi: 'じゅんび', romaji: '', meaning: 'Persiapan' },
+                { jp: '技術', furi: 'ぎじゅつ', romaji: '', meaning: 'Teknologi / Teknik' },
+                { jp: '習慣', furi: 'しゅうかん', romaji: '', meaning: 'Kebiasaan / Adat' },
+                { jp: '印象', furi: 'いんしょう', romaji: '', meaning: 'Kesan' },
+                { jp: '環境', furi: 'かんきょう', romaji: '', meaning: 'Lingkungan' },
+                { jp: '法律', furi: 'ほうりつ', romaji: '', meaning: 'Hukum / Undang-undang' },
+                { jp: '積極的', furi: 'せっきょくてき', romaji: '', meaning: 'Proaktif / Positif' },
+                { jp: '観察', furi: 'かんさつ', romaji: '', meaning: 'Pengamatan / Observasi' },
+                { jp: '延期', furi: 'えんき', romaji: '', meaning: 'Penundaan' },
+                { jp: '限界', furi: 'げんかい', romaji: '', meaning: 'Batas Maksimal' }
+            ]
+        };
+
+        const LEVEL_DESCRIPTIONS = {
+            hiragana: "Karakter Hiragana dasar tanpa romaji.",
+            katakana: "Karakter Katakana & kata serapan tanpa romaji.",
+            n5: "Kanji N5 lengkap dengan Furigana & Romaji.",
+            n4: "Kanji N4 dengan Romaji acak per soal (ada/tidak ada).",
+            n3: "Kanji N3 murni tanpa Romaji (hanya Furigana/Arti)."
+        };
+
+        /* --- Application State --- */
+        let currentLevel = 'hiragana';
+        let currentRound = 1;
+        let totalScore = 0;
+        
+        let cardStates = [
+            { opened: false, answered: false, correct: false, question: null, options: [], selectedOptionIndex: null, showRomajiN4: false },
+            { opened: false, answered: false, correct: false, question: null, options: [], selectedOptionIndex: null, showRomajiN4: false },
+            { opened: false, answered: false, correct: false, question: null, options: [], selectedOptionIndex: null, showRomajiN4: false }
+        ];
+
+        /* --- DOM Elements --- */
+        const levelSelect = document.getElementById('level-select');
+        const levelDescription = document.getElementById('level-description');
+        const statRound = document.getElementById('stat-round');
+        const statScore = document.getElementById('stat-score');
+        const currentRoundDisplay = document.getElementById('current-round-display');
+        const roundStatusBadge = document.getElementById('round-status-badge');
+        const nextRoundContainer = document.getElementById('next-round-container');
+        const cardsContainer = document.getElementById('cards-container');
+
+        /* --- Initialization --- */
+        window.addEventListener('DOMContentLoaded', () => {
+            initGame();
+            
+            levelSelect.addEventListener('change', (e) => {
+                currentLevel = e.target.value;
+                updateLevelUI();
+                resetAndStartNewRound();
+            });
+        });
+
+        function initGame() {
+            updateLevelUI();
+            startRound();
+        }
+
+        function updateLevelUI() {
+            levelDescription.innerText = LEVEL_DESCRIPTIONS[currentLevel];
+        }
+
+        /* --- Round & Question Generator --- */
+        function startRound() {
+            currentRoundDisplay.innerText = currentRound;
+            statRound.innerText = currentRound;
+            
+            const db = QUESTION_DATABASE[currentLevel];
+            const shuffledDb = [...db].sort(() => 0.5 - Math.random());
+            const roundQuestions = shuffledDb.slice(0, 3);
+
+            cardStates = roundQuestions.map((q) => ({
+                opened: false,
+                answered: false,
+                correct: false,
+                question: q,
+                options: generateOptions(q),
+                selectedOptionIndex: null,
+                showRomajiN4: Math.random() < 0.5 // acak 50% ada romaji di level N4
+            }));
+
+            nextRoundContainer.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
+            updateBadgeStatus();
+            renderAllCards();
+        }
+
+        function resetAndStartNewRound() {
+            startRound();
+        }
+
+        function updateBadgeStatus() {
+            const answeredCount = cardStates.filter(c => c.answered).length;
+            if (answeredCount === 3) {
+                roundStatusBadge.className = "text-xs font-normal bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full border border-emerald-200";
+                roundStatusBadge.innerText = "Round Selesai!";
+            } else {
+                roundStatusBadge.className = "text-xs font-normal bg-amber-100 text-amber-800 px-2.5 py-0.5 rounded-full border border-amber-200";
+                roundStatusBadge.innerText = `${3 - answeredCount} Kartu Tersedia`;
+            }
+        }
+
+        function generateOptions(correctQuestion) {
+            const db = QUESTION_DATABASE[currentLevel];
+            const wrongCandidates = db.filter(q => q.jp !== correctQuestion.jp);
+            const shuffledWrong = [...wrongCandidates].sort(() => 0.5 - Math.random()).slice(0, 3);
+
+            const options = [
+                { text: correctQuestion.meaning, isCorrect: true },
+                { text: shuffledWrong[0] ? shuffledWrong[0].meaning : "Pilihan B", isCorrect: false },
+                { text: shuffledWrong[1] ? shuffledWrong[1].meaning : "Pilihan C", isCorrect: false },
+                { text: shuffledWrong[2] ? shuffledWrong[2].meaning : "Pilihan D", isCorrect: false }
+            ];
+
+            return options.sort(() => 0.5 - Math.random());
+        }
+
+        function getSubPromptText(card) {
+            const question = card.question;
+            if (currentLevel === 'hiragana' || currentLevel === 'katakana') {
+                return ''; // Hiragana & Katakana tanpa romaji
+            } else if (currentLevel === 'n5') {
+                return `Furigana: ${question.furi} | Romaji: ${question.romaji}`;
+            } else if (currentLevel === 'n4') {
+                return card.showRomajiN4 
+                    ? `Furigana: ${question.furi} | Romaji: ${question.romaji}`
+                    : `Furigana: ${question.furi}`;
+            } else if (currentLevel === 'n3') {
+                return `Furigana: ${question.furi}`;
+            }
+            return '';
+        }
+
+        /* --- Render Inline Cards --- */
+        function renderAllCards() {
+            cardsContainer.innerHTML = '';
+
+            cardStates.forEach((card, index) => {
+                const cardEl = document.createElement('div');
+                cardEl.className = "bg-white rounded-3xl p-6 border-2 shadow-md transition-all flex flex-col justify-between relative overflow-hidden";
+                
+                if (!card.opened) {
+                    // Closed State Card
+                    cardEl.classList.add('border-stone-200', 'hover:border-sakura-300', 'cursor-pointer');
+                    cardEl.onclick = () => openCardInline(index);
+                    cardEl.innerHTML = `
+                        <div class="flex flex-col items-center justify-center py-12 text-center">
+                            <div class="w-16 h-16 rounded-full bg-sakura-50 text-sakura-500 flex items-center justify-center text-2xl font-bold mb-4 border border-sakura-100 shadow-sm">
+                                ${index + 1}
+                            </div>
+                            <span class="text-xs font-semibold uppercase tracking-wider text-stone-400">Kartu 0${index + 1}</span>
+                            <h3 class="text-lg font-bold text-stone-700 mt-1">Klik untuk Membuka Soal</h3>
+                            <p class="text-xs text-stone-400 mt-1">Soal akan langsung tampil di sini</p>
+                        </div>
+                    `;
+                } else {
+                    // Opened State Card (Inline Quiz)
+                    if (card.answered) {
+                        cardEl.classList.add(card.correct ? 'border-emerald-300' : 'border-rose-300', 'bg-stone-50/50');
+                    } else {
+                        cardEl.classList.add('border-sakura-300', 'ring-2', 'ring-sakura-100');
+                    }
+
+                    const subPrompt = getSubPromptText(card);
+
+                    let optionsHTML = '';
+                    card.options.forEach((opt, optIdx) => {
+                        let btnStyle = "w-full text-left p-3.5 rounded-xl border border-stone-200 bg-white hover:bg-sakura-50/50 text-stone-700 transition flex items-center justify-between text-xs md:text-sm font-medium mb-2";
+                        
+                        if (card.answered) {
+                            if (opt.isCorrect) {
+                                btnStyle = "w-full text-left p-3.5 rounded-xl border border-emerald-500 bg-emerald-50 text-emerald-900 font-bold flex items-center justify-between text-xs md:text-sm mb-2";
+                            } else if (card.selectedOptionIndex === optIdx && !opt.isCorrect) {
+                                btnStyle = "w-full text-left p-3.5 rounded-xl border border-rose-500 bg-rose-50 text-rose-900 font-bold flex items-center justify-between text-xs md:text-sm mb-2";
+                            } else {
+                                btnStyle = "w-full text-left p-3.5 rounded-xl border border-stone-200 bg-stone-100/50 text-stone-400 opacity-60 flex items-center justify-between text-xs md:text-sm mb-2";
+                            }
+                        } else if (card.selectedOptionIndex === optIdx) {
+                            btnStyle = "w-full text-left p-3.5 rounded-xl border-2 border-sakura-500 bg-sakura-50 text-sakura-900 font-semibold flex items-center justify-between text-xs md:text-sm mb-2";
+                        }
+
+                        optionsHTML += `
+                            <button 
+                                ${card.answered ? 'disabled' : ''} 
+                                onclick="selectOptionInline(${index}, ${optIdx})" 
+                                class="${btnStyle}">
+                                <span>${opt.text}</span>
+                                ${card.selectedOptionIndex === optIdx ? '<span class="text-sakura-600 font-bold">✓</span>' : ''}
+                            </button>
+                        `;
+                    });
+
+                    let statusBadgeHTML = '';
+                    if (card.answered) {
+                        statusBadgeHTML = card.correct
+                            ? `<div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center gap-2 mb-4">
+                                    <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
+                                    <span>BENAR! (+10 poin)</span>
+                               </div>`
+                            : `<div class="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold flex items-center gap-2 mb-4">
+                                    <i class="fa-solid fa-circle-xmark text-rose-600 text-base"></i>
+                                    <span>SALAH! Arti: "${card.question.meaning}"</span>
+                               </div>`;
+                    }
+
+                    const canSubmit = card.selectedOptionIndex !== null && !card.answered;
+
+                    cardEl.innerHTML = `
+                        <div>
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-sakura-50 text-sakura-600 border border-sakura-100">
+                                    Kartu 0${index + 1}
+                                </span>
+                                ${card.answered ? `
+                                    <span class="text-xs font-bold px-2 py-0.5 rounded-md ${card.correct ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
+                                        ${card.correct ? 'Selesai' : 'Salah'}
+                                    </span>
+                                ` : ''}
+                            </div>
+
+                            <div class="text-center my-4">
+                                <div class="font-jp text-4xl md:text-5xl font-bold text-stone-800 tracking-wide min-h-[60px] flex items-center justify-center">
+                                    ${card.question.jp}
+                                </div>
+                                ${subPrompt ? `<p class="text-xs font-medium text-stone-500 mt-1 min-h-[16px]">${subPrompt}</p>` : ''}
+                            </div>
+
+                            <div class="my-4">
+                                ${optionsHTML}
+                            </div>
+
+                            ${statusBadgeHTML}
+                        </div>
+
+                        ${!card.answered ? `
+                            <button 
+                                onclick="submitAnswerInline(${index})"
+                                ${!canSubmit ? 'disabled' : ''}
+                                class="w-full py-3 rounded-xl font-bold text-sm transition flex items-center justify-center gap-2 ${
+                                    canSubmit 
+                                        ? 'bg-stone-800 hover:bg-stone-900 text-white shadow-md' 
+                                        : 'bg-stone-200 text-stone-400 cursor-not-allowed'
+                                }">
+                                <span>Jawab Kartu ${index + 1}</span>
+                            </button>
+                        ` : ''}
+                    `;
+                }
+
+                cardsContainer.appendChild(cardEl);
+            });
+        }
+
+        /* --- Interaksi Inline --- */
+        function openCardInline(cardIndex) {
+            cardStates[cardIndex].opened = true;
+            renderAllCards();
+        }
+
+        function selectOptionInline(cardIndex, optionIndex) {
+            if (cardStates[cardIndex].answered) return;
+            cardStates[cardIndex].selectedOptionIndex = optionIndex;
+            renderAllCards();
+        }
+
+        function submitAnswerInline(cardIndex) {
+            const card = cardStates[cardIndex];
+            if (card.selectedOptionIndex === null || card.answered) return;
+
+            const selectedOption = card.options[card.selectedOptionIndex];
+            card.correct = selectedOption.isCorrect;
+            card.answered = true;
+
+            if (card.correct) {
+                totalScore += 10;
+                statScore.innerText = totalScore;
+            }
+
+            updateBadgeStatus();
+            renderAllCards();
+
+            // Check if all 3 cards in the round are answered
+            if (cardStates.every(c => c.answered)) {
+                setTimeout(() => {
+                    nextRoundContainer.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
+                }, 300);
+            }
+        }
+
+        /* --- Next Round Transition --- */
+        function nextRound() {
+            currentRound++;
+            startRound();
+        }
+    </script>
+</body>
+</html>
